@@ -124,6 +124,12 @@ class Aplicacion:
                 # Asume que uploadDocDB es la función que sube el archivo y retorna un response
                 response = uploadDocDB(archivo)
 
+                try:
+                    self.documentos = getAllDB()
+                    self.actualizar_checkboxes(self.documentos)
+                except Exception as e:
+                    print(f"Error al cargar documentos iniciales: {e}")
+
                 # Si el archivo se carga correctamente, muestra un cuadro de diálogo con el resultado
                 messagebox.showinfo("Carga Exitosa", f"El archivo '{archivo}' se ha cargado correctamente.\nRespuesta: {response}")
             
@@ -134,29 +140,38 @@ class Aplicacion:
 
     def SearchFiltred(self):
         # Obtener documentos seleccionados
-        lstDocs = [doc for doc, var in self.check_vars.items() if var.get()]
-
-        # Obtener el valor de K
         try:
-            k = int(self.entrada_k.get())
+            lstDocs = [doc for doc, var in self.check_vars.items() if var.get()]
+
+            # Obtener el valor de K
+            try:
+                k = int(self.entrada_k.get())
+            except ValueError:
+                self.respuesta.delete(1.0, tk.END)
+                self.respuesta.insert(tk.END, "Error: K debe ser un número entero válido.")
+                return
+
+            # Obtener el texto del input
+            pregunta = self.entrada.get("1.0", tk.END).strip()
+
+            # Llamar a la función getContextFilter con los parámetros
+            context = getContextFilter(lstDocs, pregunta, k)
+            response = respuestaCompleta(pregunta, context=context)
+
+            añadirHist(pregunta, response.content)
+
+            self.respuesta.delete(1.0, tk.END)
+            self.respuesta.insert(tk.END, response.content)
+
+
+            self.cargar_documentos_lista(context)
+
         except ValueError:
             self.respuesta.delete(1.0, tk.END)
             self.respuesta.insert(tk.END, "Error: K debe ser un número entero válido.")
-            return
-
-        # Obtener el texto del input
-        pregunta = self.entrada.get("1.0", tk.END).strip()
-
-        # Llamar a la función getContextFilter con los parámetros
-        context = getContextFilter(lstDocs, pregunta, k)
-        response = respuestaCompleta(pregunta, context=context)
-
-        añadirHist(pregunta, response.content)
-
-        self.respuesta.delete(1.0, tk.END)
-        self.respuesta.insert(tk.END, response.content)
-
-        self.cargar_documentos_lista(context)
+        except Exception as e:
+            self.respuesta.delete(1.0, tk.END)
+            self.respuesta.insert(tk.END, f"Error: {str(e)}")
 
     def cargar_documentos_iniciales(self):
         try:

@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 from office365.runtime.auth.client_credential import ClientCredential
 from office365.sharepoint.client_context import ClientContext
-from office365.runtime.client_request_exception import ClientRequestException
 
 load_dotenv()
 

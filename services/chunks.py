@@ -2,6 +2,7 @@ import json
 import PyPDF2
 from dotenv import load_dotenv
 from langchain_core.documents import Document
+import os
 
 def getChunks(filename: str):
     load_dotenv()
@@ -34,7 +35,7 @@ def getChunksSingleFile(archivo):
                 texto_pagina = pagina.extract_text().strip()
                 if texto_pagina:
                     lista_json.append({
-                        "Nombre del archivo": archivo,
+                        "Nombre del archivo": os.path.basename(archivo),
                         "Pagina": num_pagina,
                         "Texto de la pagina": texto_pagina
                     })

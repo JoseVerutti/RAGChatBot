@@ -18,6 +18,8 @@ ctx = get_sharepoint_context_using_app()
 
 url = "sites/Python_SOS_Doctorado/Documentos%20compartidos"
 
+print(post_files(url,"file.txt", ctx))
+
 def actualizarDB(filename):
 
     chunks = getChunks(filename)
