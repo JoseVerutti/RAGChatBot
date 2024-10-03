@@ -1,6 +1,7 @@
 import tkinter as tk
-from tkinter import ttk
-from main import getContext, respuestaCompleta, getAllDB, añadirHist, obtenerHist, getContextFilter
+from tkinter import ttk, filedialog
+from tkinter import messagebox  # Importar filedialog para seleccionar archivos
+from main import getContext, respuestaCompleta, getAllDB, añadirHist, obtenerHist, getContextFilter, uploadDocDB
 
 class Aplicacion:
     def __init__(self, master):
@@ -58,7 +59,7 @@ class Aplicacion:
         # Frame para K y botón de enviar
         self.frame_k_enviar = ttk.Frame(self.frame_izquierdo)
         self.frame_k_enviar.grid(row=1, column=0, columnspan=3, padx=10, pady=5, sticky="ew")
-        self.frame_k_enviar.columnconfigure(3, weight=1)  # Ajustar el botón de enviar y filtro
+        self.frame_k_enviar.columnconfigure(4, weight=1)  # Ajustar el botón de enviar, cargar archivo, y filtro
 
         self.label_k = ttk.Label(self.frame_k_enviar, text="Cantidad de referencias:")
         self.label_k.grid(row=0, column=0, padx=(0, 5))
@@ -70,8 +71,12 @@ class Aplicacion:
         self.boton_enviar = ttk.Button(self.frame_k_enviar, text="Buscar", command=self.enviar)
         self.boton_enviar.grid(row=0, column=2, sticky="e")
 
+        # Botón de cargar archivo
+        self.boton_cargar = ttk.Button(self.frame_k_enviar, text="Cargar archivo", command=self.cargar_archivo)
+        self.boton_cargar.grid(row=0, column=3, sticky="e")
+
         self.boton_filtrado = ttk.Button(self.frame_k_enviar, text="Buscar Filtrado", command=self.SearchFiltred)
-        self.boton_filtrado.grid(row=0, column=3, sticky="e")
+        self.boton_filtrado.grid(row=0, column=4, sticky="e")
 
         self.boton_nuevo = ttk.Button(self.frame_izquierdo, text="Ver registro de consultas", command=self.nuevo)
         self.boton_nuevo.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
@@ -109,6 +114,24 @@ class Aplicacion:
         self.documentos = []
         self.cargar_documentos_iniciales()
 
+    def cargar_archivo(self):
+        archivo = filedialog.askopenfilename(
+            title="Seleccionar archivo",
+            filetypes=(("Archivos de texto", "*.txt"), ("Todos los archivos", "*.*"))
+        )
+        if archivo:
+            try:
+                # Asume que uploadDocDB es la función que sube el archivo y retorna un response
+                response = uploadDocDB(archivo)
+
+                # Si el archivo se carga correctamente, muestra un cuadro de diálogo con el resultado
+                messagebox.showinfo("Carga Exitosa", f"El archivo '{archivo}' se ha cargado correctamente.\nRespuesta: {response}")
+            
+            except Exception as e:
+                # Si ocurre un error, muestra un cuadro de diálogo con el mensaje de error
+                messagebox.showerror("Error al cargar archivo", f"Ocurrió un error al cargar el archivo:\n{str(e)}")
+
+
     def SearchFiltred(self):
         # Obtener documentos seleccionados
         lstDocs = [doc for doc, var in self.check_vars.items() if var.get()]
@@ -134,8 +157,6 @@ class Aplicacion:
         self.respuesta.insert(tk.END, response.content)
 
         self.cargar_documentos_lista(context)
-
-        
 
     def cargar_documentos_iniciales(self):
         try:

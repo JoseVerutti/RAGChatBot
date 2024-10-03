@@ -14,7 +14,6 @@ def leer_archivos_pdf(carpeta):
                     texto_pagina = pagina.extract_text().strip()
                     if texto_pagina:
                         lista_json.append({
-                            "Indice": indice_global,
                             "Nombre del archivo": archivo,
                             "Pagina": num_pagina,
                             "Texto de la pagina": texto_pagina

@@ -3,7 +3,7 @@ from config.chatgpt import getChatGPTEmbeddings, client
 from config.pinecone import conectPineconeIndex
 from config.sharepoint import get_sharepoint_context_using_app
 
-from services.chunks import getChunks
+from services.chunks import getChunks, getChunksSingleFile
 from services.pinecone import searchDB, updateDB, getAllDocuments, searchDBFilter
 from services.sharepoint import get_files, post_files
 from services.chatgpt import get_answer
@@ -21,6 +21,14 @@ url = "sites/Python_SOS_Doctorado/Documentos%20compartidos"
 def actualizarDB(filename):
 
     chunks = getChunks(filename)
+
+    response = updateDB(db,chunks)
+
+    return response
+
+def uploadDocDB(file):
+
+    chunks = getChunksSingleFile(file)
 
     response = updateDB(db,chunks)
 
