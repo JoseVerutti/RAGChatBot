@@ -4,7 +4,7 @@ from config.pinecone import conectPineconeIndex
 from config.sharepoint import get_sharepoint_context_using_app
 
 from services.chunks import getChunks
-from services.pinecone import searchDB, updateDB, getAllDocuments
+from services.pinecone import searchDB, updateDB, getAllDocuments, searchDBFilter
 from services.sharepoint import get_files, post_files
 from services.chatgpt import get_answer
 
@@ -35,6 +35,25 @@ def respuestaCompleta(userPrompt , context):
 def getContext(input, k ):
 
     response = searchDB(db, input, k = k)
+
+    formatted_documents = []
+
+    for doc in response:
+
+        formatted_doc = {
+                            'metadata': {
+                                'nombre_archivo': doc.metadata['Nombre del archivo'],
+                                'pagina': doc.metadata['Pagina']
+                            },
+                            'content': doc.page_content
+                        }
+        formatted_documents.append(formatted_doc)
+
+    return formatted_documents
+
+def getContextFilter(lstDocs, input, k ):
+
+    response = searchDBFilter(lstDocs,db, input, k = k)
 
     formatted_documents = []
 
@@ -96,6 +115,3 @@ def obtenerHist():
         return []
     except json.JSONDecodeError:
         return []
-    
-filepath = "hola.txt"
-print(post_files(url,filepath,ctx=ctx))

@@ -50,6 +50,30 @@ def searchDB(db, prompt: str, k=2):
         raise
 
 
+def searchDBFilter(lstDocs, db, prompt: str, k=2):
+    try:
+        if not db:
+            raise ValueError("La base de datos no está inicializada o conectada.")
+
+        if not prompt:
+            raise ValueError("El 'prompt' no puede estar vacío.")
+
+        results = db.similarity_search(prompt, k=k, filter={"Nombre del archivo": {"$in": lstDocs}},)
+
+        if not results:
+            logging.warning(f"No se encontraron resultados para el prompt: {prompt}")
+        else:
+            logging.info(f"Se encontraron {len(results)} resultados para el prompt.")
+
+        return results
+
+    except ValueError as ve:
+        logging.error(f"Error de validación en searchDB: {ve}")
+        raise
+    except Exception as e:
+        logging.error(f"Error inesperado al buscar en la base de datos: {e}")
+        raise
+
 def getAllDocuments(db):
     try:
         if not db:

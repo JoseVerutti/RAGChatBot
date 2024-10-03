@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from main import getContext, respuestaCompleta, getAllDB, añadirHist, obtenerHist
+from main import getContext, respuestaCompleta, getAllDB, añadirHist, obtenerHist, getContextFilter
 
 class Aplicacion:
     def __init__(self, master):
@@ -58,7 +58,7 @@ class Aplicacion:
         # Frame para K y botón de enviar
         self.frame_k_enviar = ttk.Frame(self.frame_izquierdo)
         self.frame_k_enviar.grid(row=1, column=0, columnspan=3, padx=10, pady=5, sticky="ew")
-        self.frame_k_enviar.columnconfigure(2, weight=1)  # Para que el botón se alinee a la derecha
+        self.frame_k_enviar.columnconfigure(3, weight=1)  # Ajustar el botón de enviar y filtro
 
         self.label_k = ttk.Label(self.frame_k_enviar, text="Cantidad de referencias:")
         self.label_k.grid(row=0, column=0, padx=(0, 5))
@@ -70,12 +70,18 @@ class Aplicacion:
         self.boton_enviar = ttk.Button(self.frame_k_enviar, text="Buscar", command=self.enviar)
         self.boton_enviar.grid(row=0, column=2, sticky="e")
 
+        self.boton_filtrado = ttk.Button(self.frame_k_enviar, text="Buscar Filtrado", command=self.SearchFiltred)
+        self.boton_filtrado.grid(row=0, column=3, sticky="e")
+
         self.boton_nuevo = ttk.Button(self.frame_izquierdo, text="Ver registro de consultas", command=self.nuevo)
         self.boton_nuevo.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
 
         # Aumentar el tamaño de la ventana de respuesta
         self.respuesta = tk.Text(self.frame_izquierdo, wrap=tk.WORD, height=20)
         self.respuesta.grid(row=3, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+
+        # Variables para checkboxes
+        self.check_vars = {}
 
         # Configurar frame_documentos
         self.frame_documentos = ttk.Frame(self.frame_izquierdo)
@@ -100,12 +106,36 @@ class Aplicacion:
         self.canvas.pack(side="left", fill="both", expand=True)
         self.scrollbar.pack(side="right", fill="y")
 
-        # Configurar widgets en frame_derecho
-        self.titulo_checkboxes = ttk.Label(self.frame_derecho, text="Opciones")
-        self.titulo_checkboxes.grid(row=0, column=0, padx=10, pady=10, sticky="w")
-
         self.documentos = []
         self.cargar_documentos_iniciales()
+
+    def SearchFiltred(self):
+        # Obtener documentos seleccionados
+        lstDocs = [doc for doc, var in self.check_vars.items() if var.get()]
+
+        # Obtener el valor de K
+        try:
+            k = int(self.entrada_k.get())
+        except ValueError:
+            self.respuesta.delete(1.0, tk.END)
+            self.respuesta.insert(tk.END, "Error: K debe ser un número entero válido.")
+            return
+
+        # Obtener el texto del input
+        pregunta = self.entrada.get("1.0", tk.END).strip()
+
+        # Llamar a la función getContextFilter con los parámetros
+        context = getContextFilter(lstDocs, pregunta, k)
+        response = respuestaCompleta(pregunta, context=context)
+
+        añadirHist(pregunta, response.content)
+
+        self.respuesta.delete(1.0, tk.END)
+        self.respuesta.insert(tk.END, response.content)
+
+        self.cargar_documentos_lista(context)
+
+        
 
     def cargar_documentos_iniciales(self):
         try:
@@ -122,13 +152,11 @@ class Aplicacion:
             label = ttk.Label(self.frame_checkboxes, text="No hay documentos disponibles")
             label.pack(padx=5, pady=2, anchor="w")
         else:
-            # Crear un set para almacenar nombres de archivos únicos
             archivos_unicos = set()
             for doc in documentos:
                 nombre_archivo = doc['metadata'].get('nombre_archivo', 'Referencia sin nombre')
                 archivos_unicos.add(nombre_archivo)
 
-            # Crear checkboxes para cada archivo único
             for i, nombre_archivo in enumerate(sorted(archivos_unicos)):
                 frame = ttk.Frame(self.frame_checkboxes)
                 frame.pack(fill="x", padx=5, pady=2)
@@ -137,7 +165,8 @@ class Aplicacion:
                 checkbox = ttk.Checkbutton(frame, text=nombre_archivo, variable=var)
                 checkbox.pack(side="left")
 
-                # Encontrar todos los documentos con este nombre de archivo
+                self.check_vars[nombre_archivo] = var
+
                 docs_relacionados = [doc for doc in documentos if doc['metadata'].get('nombre_archivo') == nombre_archivo]
                 
                 boton_detalles = ttk.Button(frame, text="Detalles", 
