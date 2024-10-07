@@ -20,13 +20,40 @@ def actualizarDB(filename):
 
     return response
 
+import os
+import shutil
+from datetime import datetime
+
 def uploadDocDB(file):
+    # Definir la carpeta de destino
+    carpeta_destino = "pdfs"
 
-    chunks = getChunksSingleFile(file)
+    # Asegurarnos de que la carpeta existe, si no la creamos
+    if not os.path.exists(carpeta_destino):
+        os.makedirs(carpeta_destino)
 
-    response = updateDB(db,chunks)
+    # Obtener el nombre del archivo y el path
+    nombre_archivo = os.path.basename(file)  # Solo el nombre del archivo sin el path
+    archivo_destino = os.path.join(carpeta_destino, nombre_archivo)
+
+    # Verificar si ya existe un archivo con el mismo nombre y renombrarlo si es necesario
+    if os.path.exists(archivo_destino):
+        # Si el archivo ya existe, agregar un sufijo para evitar sobrescribirlo
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        nombre_archivo, ext = os.path.splitext(nombre_archivo)
+        archivo_destino = os.path.join(carpeta_destino, f"{nombre_archivo}_{timestamp}{ext}")
+
+    # Copiar el archivo a la carpeta destino
+    shutil.copy(file, archivo_destino)
+
+    # Ahora, procesamos el archivo como se hacía originalmente
+    chunks = getChunksSingleFile(archivo_destino)
+
+    # Supongo que updateDB es una función que actualiza la base de datos con los "chunks" del archivo
+    response = updateDB(db, chunks)
 
     return response
+
 
 def respuestaCompleta(userPrompt , context):
 
