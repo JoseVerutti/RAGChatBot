@@ -14,7 +14,6 @@ def getChunks(filename: str):
         Document(
             page_content=item["Texto de la pagina"],
             metadata={
-                "Indice": item["Indice"],
                 "Nombre del archivo": item["Nombre del archivo"],
                 "Pagina" : item["Pagina"]
             }

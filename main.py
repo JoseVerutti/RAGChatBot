@@ -10,7 +10,7 @@ from services.chatgpt import get_answer
 
 embeddings = getChatGPTEmbeddings()
 
-db = conectPineconeIndex(embeddings, "rag-gianpi-texts")
+db = conectPineconeIndex(embeddings, "rag-liz-texts")
 
 def actualizarDB(filename):
 
@@ -19,6 +19,7 @@ def actualizarDB(filename):
     response = updateDB(db,chunks)
 
     return response
+
 
 import os
 import shutil
